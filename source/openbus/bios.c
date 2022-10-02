@@ -8,8 +8,8 @@
 \******************************************************************************/
 
 #include <gba_console.h>
-#include <gba_systemcalls.h>
 #include <gba_interrupt.h>
+#include <gba_systemcalls.h>
 #include <stdio.h>
 
 IWRAM_CODE

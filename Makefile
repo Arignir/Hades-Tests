@@ -30,8 +30,6 @@ CFLAGS	:= \
 	-Wall \
 	-Wextra \
 	-fomit-frame-pointer\
-	-mthumb-interwork \
-	-mthumb \
 	-mcpu=arm7tdmi \
 	-mtune=arm7tdmi \
 	-I$(LIBGBA)/include \
@@ -45,7 +43,7 @@ LDFLAGS	:= \
 
 all: $(TARGETS)
 	$(Q)mkdir -p $(ROMS)
-	$(Q)cp $< $(ROMS)
+	$(Q)cp $(TARGETS) $(ROMS)
 
 $(BUILD)/openbus/openbus-bios.gba: $(BUILD)/openbus/bios.o
 $(BUILD)/timer/timer-basic.gba: $(BUILD)/timer/basic.o
@@ -67,4 +65,10 @@ $(BUILD)/%.o: $(SOURCE)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -fv $(BUILD) $(ROMS)
+	$(Q)echo "  RM $(shell basename $(BUILD))"
+	$(Q)rm -rf $(BUILD)
+	$(Q)echo "  RM $(shell basename $(ROMS))"
+	$(Q)rm -rf $(ROMS)
+
+re: clean
+	$(Q)$(MAKE) --no-print-directory all
