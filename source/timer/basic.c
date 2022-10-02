@@ -8,10 +8,26 @@
 \******************************************************************************/
 
 #include <gba_console.h>
+#include <gba_systemcalls.h>
+#include <gba_interrupt.h>
+#include <stdio.h>
 
 IWRAM_CODE
 int
-main(void) {
+main(void)
+{
+    irqInit();
     consoleDemoInit();
-    return 0;
+
+    printf("Timer Tests\n");
+    printf("  TODO FIXME\n\n");
+
+    irqEnable(IRQ_VBLANK);
+    VBlankIntrWait();
+
+    while (true) {
+        VBlankIntrWait();
+    }
+
+    return (0);
 }
