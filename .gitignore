@@ -53,5 +53,5 @@ dkms.conf
 
 # Build folder
 /build/
-/rom/*.sav
-/rom/*.hds
+/roms/*.sav
+/roms/*.hds
