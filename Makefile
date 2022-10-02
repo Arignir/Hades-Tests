@@ -11,7 +11,7 @@ BUILD	:= $(realpath $(shell pwd))/build
 ROMS	:= $(realpath $(shell pwd))/roms/
 
 TARGETS := \
-	$(BUILD)/openbus/openbus-basic.gba \
+	$(BUILD)/openbus/openbus-unaligned-access.gba \
 	$(BUILD)/timer/timer-basic.gba \
 
 include $(DEVKITARM)/gba_rules
@@ -42,7 +42,7 @@ all: $(TARGETS)
 	$(Q)mkdir -p $(ROMS)
 	$(Q)cp $< $(ROMS)
 
-$(BUILD)/openbus/openbus-basic.gba: $(BUILD)/openbus/basic.o
+$(BUILD)/openbus/openbus-unaligned-access.gba: $(BUILD)/openbus/unaligned-access.o
 $(BUILD)/timer/timer-basic.gba: $(BUILD)/timer/basic.o
 
 $(TARGETS):
@@ -62,4 +62,4 @@ $(BUILD)/%.o: $(SOURCE)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -fv $(BUILD)
+	rm -fv $(BUILD) $(ROMS)
