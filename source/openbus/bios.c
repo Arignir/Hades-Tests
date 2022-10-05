@@ -46,9 +46,9 @@ main(void)
         success = values[i][0] == values[i][1];
 
         if (success) {
-            printf("%i: success\n", i + 1);
+            printf("%02i: PASS\n", i + 1);
         } else {
-            printf("%i: fail %08lx != %08lx\n", i + 1, values[i][0], values[i][1]);
+            printf("%02i: FAIL %08lX != %08lX\n", i + 1, values[i][0], values[i][1]);
         }
     }
 
