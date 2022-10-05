@@ -13,30 +13,77 @@
 #include <gba_timers.h>
 #include <stdio.h>
 
-#define TEST_01_NB_SAMPLES 3
-#define TEST_02_NB_SAMPLES 3
-#define TEST_04_NB_SAMPLES 2
+uint16_t nb_test_pass = 0;
+uint16_t nb_test_fail = 0;
 
 /*
 ** Ideas to explore:
-**   - Start/Stop with reload=0xFFFF and see if the DMA/IRQ triggered
+**   - Start/Stop with reload=0xFFFF and see when the DMA/IRQ triggered
 */
+
+#define NEW_TEST(_idx, _samples_nb, _code) \
+    IWRAM_CODE \
+    static \
+    void \
+    test_0##_idx##_iwram(void) \
+    { \
+        u16 samples[_samples_nb]; \
+        u16 expected[_samples_nb]; \
+        bool iwram __unused; \
+        int i; \
+        \
+        iwram = true; \
+        \
+        _code; \
+        \
+        for (i = 0; i < _samples_nb; ++i) { \
+            if (samples[i] != expected[i]) { \
+                printf("IWRAM %i: FAIL 0x%04X != 0x%04X", (_idx), samples[i], expected[i]); \
+                nb_test_fail += 1; \
+                return ; \
+            } \
+        } \
+        printf("IWRAM %i: PASS\n", (_idx)); \
+        nb_test_pass += 1; \
+    } \
+    \
+    static \
+    void \
+    test_0##_idx##_rom(void) \
+    { \
+        u16 samples[_samples_nb]; \
+        u16 expected[_samples_nb]; \
+        bool iwram __unused; \
+        int i; \
+        \
+        iwram = false; \
+        \
+        _code; \
+        \
+        for (i = 0; i < _samples_nb; ++i) { \
+            if (samples[i] != expected[i]) { \
+                printf("ROM   %i: FAIL 0x%04X != 0x%04X", (_idx), samples[i], expected[i]); \
+                nb_test_fail += 1; \
+                return ; \
+            } \
+        } \
+        printf("ROM   %i: PASS\n", (_idx)); \
+        nb_test_pass += 1; \
+    } \
 
 /*
 ** Start a timer and ensure it evolves consistently.
 */
-IWRAM_CODE
-static
-void
-test_01(void)
-{
-    u16 samples[TEST_01_NB_SAMPLES];
-    u16 expected[TEST_01_NB_SAMPLES];
-    int i;
-
-    expected[0] = 0x0000;
-    expected[1] = 0x0003;
-    expected[2] = 0x0006;
+NEW_TEST(1, 3,  {
+    if (iwram) {
+        expected[0] = 0x0000;
+        expected[1] = 0x0003;
+        expected[2] = 0x0006;
+    } else {
+        expected[0] = 0x0007;
+        expected[1] = 0x0011;
+        expected[2] = 0x001B;
+    }
 
     asm volatile(
         // Set r1 to REG_TM0CNT
@@ -71,32 +118,21 @@ test_01(void)
         :
             "r0", "r1", "r2", "r3", "r4"
     );
-
-    for (i = 0; i < TEST_01_NB_SAMPLES; ++i) {
-        if (samples[i] != expected[i]) {
-            printf("1: FAIL 0x%04X != 0x%04X\n", samples[i], expected[i]);
-            return ;
-        }
-    }
-
-    printf("1: PASS\n");
-}
+});
 
 /*
 ** Ensure the timer doesn't evolve anymore after being stopped.
 */
-IWRAM_CODE
-static
-void
-test_02(void)
-{
-    u16 samples[TEST_02_NB_SAMPLES];
-    u16 expected[TEST_02_NB_SAMPLES];
-    int i;
-
-    expected[0] = 0x0003;
-    expected[1] = 0x0008;
-    expected[2] = 0x0008;
+NEW_TEST(2, 3,  {
+    if (iwram) {
+        expected[0] = 0x0003;
+        expected[1] = 0x0008;
+        expected[2] = 0x0008;
+    } else {
+        expected[0] = 0x0019;
+        expected[1] = 0x002A;
+        expected[2] = 0x002A;
+    }
 
     asm volatile(
         // Set r1 to REG_TM0CNT
@@ -153,29 +189,17 @@ test_02(void)
         :
             "r0", "r1", "r2", "r3", "r4"
     );
-
-    for (i = 0; i < TEST_02_NB_SAMPLES; ++i) {
-        if (samples[i] != expected[i]) {
-            printf("2: FAIL 0x%04X != 0x%04X\n", samples[i], expected[i]);
-            return ;
-        }
-    }
-
-    printf("2: PASS\n");
-}
+});
 
 /*
 ** Start and immediately stop the timer.
 */
-IWRAM_CODE
-static
-void
-test_03(void)
-{
-    u16 sample;
-    u16 expected;
-
-    expected = 0x0001;
+NEW_TEST(3, 1,  {
+    if (iwram) {
+        expected[0] = 0x0001;
+    } else {
+        expected[0] = 0x0008;
+    }
 
     asm volatile(
         // Set r1 to REG_TM0CNT
@@ -197,31 +221,22 @@ test_03(void)
 
         "mov %[sample], r2\n"
         :
-            [sample]"=r"(sample)
+            [sample]"=r"(samples[0])
         :
         :
             "r0", "r1", "r2"
     );
-
-    if (sample != expected) {
-        printf("3: FAIL 0x%04X != 0x%04X\n", sample, expected);
-    } else {
-        printf("3: PASS\n");
-    }
-}
+});
 
 /*
 ** Measure the time it takes to read REG_TM0CNT.
 */
-IWRAM_CODE
-static
-void
-test_04(void)
-{
-    u16 sample;
-    u16 expected;
-
-    expected = 0x0005;
+NEW_TEST(4, 1,  {
+    if (iwram) {
+        expected[0] = 0x0005;
+    } else {
+        expected[0] = 0x0018;
+    }
 
     asm volatile(
         // Set r1 to REG_TM0CNT
@@ -249,31 +264,22 @@ test_04(void)
 
         "mov %[sample], r2\n"
         :
-            [sample]"=r"(sample)
+            [sample]"=r"(samples[0])
         :
         :
             "r0", "r1", "r2"
     );
-
-    if (sample != expected) {
-        printf("4: FAIL 0x%04X != 0x%04X\n", sample, expected);
-    } else {
-        printf("4: PASS\n");
-    }
-}
+});
 
 /*
 ** Start, Reset and Stop the timer.
 */
-IWRAM_CODE
-static
-void
-test_05(void)
-{
-    u16 sample;
-    u16 expected;
-
-    expected = 0x0009;
+NEW_TEST(5, 1,  {
+    if (iwram) {
+        expected[0] = 0x0009;
+    } else {
+        expected[0] = 0x0035;
+    }
 
     asm volatile(
         // Set r1 to REG_TM0CNT
@@ -308,24 +314,16 @@ test_05(void)
 
         "mov %[sample], r2\n"
         :
-            [sample]"=r"(sample)
+            [sample]"=r"(samples[0])
         :
         :
             "r0", "r1", "r2"
     );
-
-    if (sample != expected) {
-        printf("5: FAIL 0x%04X != 0x%04X\n", sample, expected);
-    } else {
-        printf("5: PASS\n");
-    }
-}
-
+});
 
 /*
 ** Quel est le comportement quand
 */
-
 IWRAM_CODE
 int
 main(void)
@@ -339,11 +337,20 @@ main(void)
     irqEnable(IRQ_VBLANK);
     VBlankIntrWait();
 
-    test_01();
-    test_02();
-    test_03();
-    test_04();
-    test_05();
+    test_01_rom();
+    test_02_rom();
+    test_03_rom();
+    test_04_rom();
+    test_05_rom();
+
+    test_01_iwram();
+    test_02_iwram();
+    test_03_iwram();
+    test_04_iwram();
+    test_05_iwram();
+
+    printf("\n");
+    printf("Total: %u/%u\n", nb_test_pass, nb_test_pass + nb_test_fail);
 
     while (true) {
         VBlankIntrWait();
