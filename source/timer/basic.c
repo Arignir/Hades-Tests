@@ -19,6 +19,9 @@ uint16_t nb_test_fail = 0;
 /*
 ** Ideas to explore:
 **   - Start/Stop with reload=0xFFFF and see when the DMA/IRQ triggered
+**   - Set the write-through or post-indexing bit of LDR (in ROM) while
+**       reading the timer's counter to see when exactly the internal cycle
+**       is spent.
 */
 
 #define NEW_TEST(_idx, _samples_nb, _code) \
@@ -99,7 +102,7 @@ NEW_TEST(1, 3,  {
 
         // Read the timer's value 3 times in a row
         "ldrh r2, [r1]\n"
-        "ldrh r3, [r1]\n"
+        "ldrh r3, [r1]\n" // 8NS + 1W + [READ] + 1I
         "ldrh r4, [r1]\n"
 
         // Move the return value to the local variables
@@ -147,16 +150,16 @@ NEW_TEST(2, 3,  {
         "strh r0, [r1, #0x2]\n"
 
         // Spend some time
-        "nop\n"
-        "nop\n"
+        "nop\n" // 8NS
+        "nop\n" // 6S
         "nop\n"
 
         // Read the timer's value
-        "ldrh r2, [r1]\n"
+        "ldrh r2, [r1]\n" // 6S + 1W + [READ] + 1I
 
         // Stop the timer
-        "mov r0, #0\n"
-        "strh r0, [r1, #0x2]\n"
+        "mov r0, #0\n" // 8NS
+        "strh r0, [r1, #0x2]\n" // 6S + 1W [WRITE]
 
         // Spend some time
         "nop\n"
