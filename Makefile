@@ -16,6 +16,7 @@ BUILD	:= $(realpath $(shell pwd))/build
 ROMS	:= $(realpath $(shell pwd))/roms/
 
 TARGETS := \
+	$(BUILD)/dma/dma-start-delay.gba \
 	$(BUILD)/openbus/openbus-bios.gba \
 	$(BUILD)/timer/timer-basic.gba \
 
@@ -45,6 +46,7 @@ all: $(TARGETS)
 	$(Q)mkdir -p $(ROMS)
 	$(Q)cp $(TARGETS) $(ROMS)
 
+$(BUILD)/dma/dma-start-delay.gba: $(BUILD)/dma/start-delay.o
 $(BUILD)/openbus/openbus-bios.gba: $(BUILD)/openbus/bios.o
 $(BUILD)/timer/timer-basic.gba: $(BUILD)/timer/basic.o
 
