@@ -92,6 +92,10 @@ NEW_TEST(1, 3,  {
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
+        // Stop the timer
+        "mov r0, #0x00\n"
+        "strh r0, [r1, #0x2]\n"
+
         // Set the reload value to 0
         "mov r0, #0\n"
         "strh r0, [r1]\n"
@@ -140,6 +144,10 @@ NEW_TEST(2, 3,  {
     asm volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
+
+        // Stop the timer
+        "mov r0, #0x00\n"
+        "strh r0, [r1, #0x2]\n"
 
         // Set the reload value to 0
         "mov r0, #0\n"
@@ -208,6 +216,10 @@ NEW_TEST(3, 1,  {
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
+        // Stop the timer
+        "mov r0, #0x00\n"
+        "strh r0, [r1, #0x2]\n"
+
         // Set the reload value to 0
         "mov r0, #0\n"
         "strh r0, [r1]\n"
@@ -245,7 +257,9 @@ NEW_TEST(4, 1,  {
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
-        /* First experiment */
+        // Stop the timer
+        "mov r0, #0x00\n"
+        "strh r0, [r1, #0x2]\n"
 
         // Set the reload value to 0
         "mov r0, #0\n"
@@ -288,6 +302,10 @@ NEW_TEST(5, 1,  {
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
+        // Stop the timer
+        "mov r0, #0x00\n"
+        "strh r0, [r1, #0x2]\n"
+
         // Set the reload value to 0
         "mov r0, #0\n"
         "strh r0, [r1]\n"
@@ -324,9 +342,6 @@ NEW_TEST(5, 1,  {
     );
 });
 
-/*
-** Quel est le comportement quand
-*/
 IWRAM_CODE
 int
 main(void)
