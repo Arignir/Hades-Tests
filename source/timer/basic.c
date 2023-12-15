@@ -88,7 +88,7 @@ NEW_TEST(1, 3,  {
         expected[2] = 0x001B;
     }
 
-    asm volatile(
+    __asm__ volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
@@ -141,7 +141,7 @@ NEW_TEST(2, 3,  {
         expected[2] = 0x002A;
     }
 
-    asm volatile(
+    __asm__ volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
@@ -212,7 +212,7 @@ NEW_TEST(3, 1,  {
         expected[0] = 0x0008;
     }
 
-    asm volatile(
+    __asm__ volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
@@ -253,7 +253,7 @@ NEW_TEST(4, 1,  {
         expected[0] = 0x0018;
     }
 
-    asm volatile(
+    __asm__ volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 
@@ -298,7 +298,7 @@ NEW_TEST(5, 1,  {
         expected[0] = 0x0035;
     }
 
-    asm volatile(
+    __asm__ volatile(
         // Set r1 to REG_TM0CNT
         "ldr r1, =#0x04000100\n"
 

@@ -88,7 +88,7 @@ uint16_t nb_test_fail = 0;
 NEW_TEST(1, 2,  {
     if (iwram) {
         expected[0] = 0x0016;
-        expected[1] = 0x0023;
+        expected[1] = 0x0022;
     } else {
         expected[0] = 0x0073;
         expected[1] = 0x00AE;
@@ -116,8 +116,8 @@ NEW_TEST(1, 2,  {
 NEW_TEST(2, 3,  {
     if (iwram) {
         expected[0] = 0x0016;
-        expected[1] = 0x0021;
-        expected[2] = 0x0033;
+        expected[1] = 0x0020;
+        expected[2] = 0x0032;
     } else {
         expected[0] = 0x0073;
         expected[1] = 0x00A7;
