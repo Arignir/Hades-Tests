@@ -16,6 +16,9 @@ IWRAM_CODE
 int
 main(void)
 {
+    uint16_t nb_test_pass;
+    uint16_t nb_test_fail;
+
     irqInit();
     consoleDemoInit();
 
@@ -40,17 +43,24 @@ main(void)
         { 0x000000e3, *(vu8 *)0x3 },
     };
 
+    nb_test_pass = 0;
+    nb_test_fail = 0;
     for (int i = 0; i < 12; ++i) {
         bool success;
 
         success = values[i][0] == values[i][1];
 
         if (success) {
+            ++nb_test_pass;
             printf("%02i: PASS\n", i + 1);
         } else {
+            ++nb_test_fail;
             printf("%02i: FAIL %08lX != %08lX\n", i + 1, values[i][0], values[i][1]);
         }
     }
+
+    printf("\n");
+    printf("Total: %u/%u\n", nb_test_pass, nb_test_pass + nb_test_fail);
 
     while (true) {
         VBlankIntrWait();
