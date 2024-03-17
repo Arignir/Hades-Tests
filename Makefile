@@ -30,6 +30,8 @@ OBJCOPY	:= arm-none-eabi-objcopy
 CFLAGS	:= \
 	-Wall \
 	-Wextra \
+	-std=gnu17 \
+	-fms-extensions \
 	-fomit-frame-pointer\
 	-mcpu=arm7tdmi \
 	-mtune=arm7tdmi \
