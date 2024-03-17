@@ -19,6 +19,7 @@ TARGETS := \
 	$(BUILD)/dma/dma-start-delay.gba \
 	$(BUILD)/openbus/openbus-bios.gba \
 	$(BUILD)/timer/timer-basic.gba \
+	$(BUILD)/misc/misc-test.gba \
 
 include $(DEVKITARM)/gba_rules
 
@@ -51,6 +52,7 @@ all: $(TARGETS)
 $(BUILD)/dma/dma-start-delay.gba: $(BUILD)/dma/start-delay.o
 $(BUILD)/openbus/openbus-bios.gba: $(BUILD)/openbus/bios.o
 $(BUILD)/timer/timer-basic.gba: $(BUILD)/timer/basic.o
+$(BUILD)/misc/misc-test.gba: $(BUILD)/misc/test.o
 
 $(TARGETS):
 	$(Q)echo "  LD $(shell basename $@)"
