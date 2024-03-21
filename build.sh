@@ -11,4 +11,4 @@
 
 rm -rf roms
 
-sudo docker run --platform linux/amd64 -it --workdir=/app -v $(pwd):/app devkitpro/devkitarm make "$@" -j
+sudo docker run --platform linux/amd64 -it --workdir=/app -v $(pwd):/app --user $UID:$UID devkitpro/devkitarm make "$@" -j
