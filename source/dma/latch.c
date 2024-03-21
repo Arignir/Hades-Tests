@@ -7,6 +7,14 @@
 **
 \******************************************************************************/
 
+/*
+** Some of those tests were inspired by NBA's hardware tests and mGBA's technical blog.
+**
+** References:
+**   - https://github.com/nba-emu/hw-test/
+**   - https://mgba.io/2020/01/25/infinite-loop-holy-grail/
+*/
+
 #include <gba_console.h>
 #include <gba_interrupt.h>
 #include <gba_timers.h>
@@ -15,20 +23,22 @@
 #include <gba_sound.h>
 #include <stdio.h>
 
-uint16_t nb_test_pass = 0;
-uint16_t nb_test_fail = 0;
-
 /*
 ** Check that DMA's reads are latched.
 */
 IWRAM_CODE
-void
+bool
 dma_latch_test_1(
     void
 ) {
-    u32 data = 0xCAFEBABE;
-    u32 res = 0;
-    u32 unused = 0;
+    bool success;
+    u32 data;
+    u32 res;
+    u32 unused;
+
+    data = 0xCAFEBABE;
+    res = 0;
+    unused = 0;
 
     // Fill DMA0's latch with 0xCAFEBABE
     REG_DMA0SAD = (u32)&data;
@@ -47,26 +57,37 @@ dma_latch_test_1(
 
     if (res == 0xCAFEBABE) {
         printf("DMA LATCH 1: PASS\n");
-        ++nb_test_pass;
+        success = true;
     } else {
         printf("DMA LATCH 1: FAIL\n");
         printf("    0x%08lx != 0x%08lx\n", res, (u32)0xCAFEBABE);
-        ++nb_test_fail;
+        success = false;
     }
+
+    REG_DMA0CNT = 0;
+    REG_DMA1CNT = 0;
+
+    return success;
 }
 
 /*
 ** Check that each DMA has its own latch, different from each other.
 */
 IWRAM_CODE
-void
+bool
 dma_latch_test_2(
     void
 ) {
-    u32 data_dma0 = 0x1BADF00D;
-    u32 data_dma1 = 0x2BADCAFE;
-    u32 unused = 0;
-    u32 res = 0;
+    bool success;
+    u32 data_dma0;
+    u32 data_dma1;
+    u32 unused;
+    u32 res;
+
+    data_dma0 = 0x1BADF00D;
+    data_dma1 = 0x2BADCAFE;
+    unused = 0;
+    res = 0;
 
     // Fill DMA1's latch with 0x2BADCAFE
     REG_DMA1SAD = (u32)&data_dma1;
@@ -93,28 +114,37 @@ dma_latch_test_2(
 
     if (res == 0x2BADCAFE) {
         printf("DMA LATCH 2: PASS\n");
-        ++nb_test_pass;
+        success = true;
     } else {
         printf("DMA LATCH 2: FAIL\n");
         printf("    0x%08lx != 0x%08lx\n", res, (u32)0x2BADCAFE);
-        ++nb_test_fail;
+        success = false;
     }
+
+    REG_DMA0CNT = 0;
+    REG_DMA1CNT = 0;
+
+    return success;
 }
 
 /*
 ** Check that the first access of a DMA, if invalid, reads the last prefetched opcode.
 */
 IWRAM_CODE
-void
+bool
 dma_latch_test_3(
     void
 ) {
-    u32 data = 0xDEADBEEF;
-    u32 expected = 0xe3530000;
-    u32 unused = 0;
-    u32 res = 0;
+    bool success;
+    u32 data;
+    u32 unused;
+    u32 res;
 
-    // Fill DMA0's latch with 0xDEADBEEF
+    data = 0xDEADBEEF;
+    unused = 0;
+    res = 0;
+
+    // Fill DMA0's latch with 0xDEADBEEF.
     REG_DMA0SAD = (u32)&data;
     REG_DMA0DAD = (u32)&unused;
     REG_DMA0CNT = DMA_ENABLE | DMA32 | 1;
@@ -122,21 +152,25 @@ dma_latch_test_3(
     while (REG_DMA0CNT & DMA_ENABLE);
 
     // The first read using DMA0, if from invalid memory (>= 0x02000000), should read what's
-    // inside the memory bus, aka the last prefetched opcode.
+    // inside the memory bus, aka the last prefetched opcode and not the value latched above.
     REG_DMA0SAD = 0x04000FF0;
     REG_DMA0DAD = (u32)&res;
     REG_DMA0CNT = DMA_ENABLE | DMA32 | 1;
 
     while (REG_DMA0CNT & DMA_ENABLE);
 
-    if (res == expected) {
+    if (res == 0xe3530000) {
         printf("DMA LATCH 3: PASS\n");
-        ++nb_test_pass;
+        success = true;
     } else {
         printf("DMA LATCH 3: FAIL\n");
-        printf("    0x%08lx != 0x%08lx\n", res, expected);
-        ++nb_test_fail;
+        printf("    0x%08lx != 0x%08x\n", res, 0xe3530000);
+        success = false;
     }
+
+    REG_DMA0CNT = 0;
+
+    return success;
 }
 
 /*
@@ -148,11 +182,14 @@ dma_latch_test_3(
 **   - https://mgba.io/2020/01/25/infinite-loop-holy-grail/
 */
 IWRAM_CODE
-void
+bool
 dma_latch_test_4(
     void
 ) {
-    u32 data = 0xFEEDC0DE;
+    bool success;
+    u32 data;
+
+    data = 0xFEEDC0DE;
 
     REG_SOUNDCNT_X |= SNDSTAT_ENABLE;
 
@@ -180,11 +217,11 @@ dma_latch_test_4(
 
         if (x == 0xFEEDC0DE) {
             printf(CON_UP(1) "DMA LATCH 4: PASS\n");
-            ++nb_test_pass;
+            success = true;
             break;
         } else if (REG_TM2CNT_L >= 3) {
             printf(CON_UP(1) "DMA LATCH 4: FAIL (Timeout)\n");
-            ++nb_test_fail;
+            success = false;
             break;
         }
     }
@@ -192,33 +229,46 @@ dma_latch_test_4(
     REG_TM0CNT_H = 0;
     REG_TM1CNT_H = 0;
     REG_TM2CNT_H = 0;
+    REG_DMA1CNT = 0;
+
+    return success;
 }
+
+static
+bool (* const tests[])(void) = {
+    dma_latch_test_1,
+    dma_latch_test_2,
+    dma_latch_test_3,
+    dma_latch_test_4,
+};
 
 IWRAM_CODE
 int
 main(void)
 {
+    size_t nb_tests;
+    u32 nb_tests_passed;
+    u32 i;
+
     irqInit();
     consoleDemoInit();
 
     printf("DMA Tests\n");
-    printf("  Start Delay\n\n");
+    printf("  Latch & Open Bus\n\n");
 
-    irqEnable(IRQ_VBLANK);
-    VBlankIntrWait();
+    nb_tests = sizeof(tests) / sizeof(tests[0]);
 
-    dma_latch_test_1();
-    dma_latch_test_2();
-    dma_latch_test_3();
-    dma_latch_test_4();
+    for (i = 0; i < nb_tests; ++i) {
+        nb_tests_passed += tests[i]();
+    }
 
     printf("\n");
-    printf("Total: %u/%u\n", nb_test_pass, nb_test_pass + nb_test_fail);
-
+    printf("Total: %lu/%zu\n", nb_tests_passed, nb_tests);
 
     while (true) {
         VBlankIntrWait();
     }
+
     return (0);
 }
 
