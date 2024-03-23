@@ -236,8 +236,9 @@ dma_latch_test_4(
 
 IWRAM_CODE
 int
-main(void)
-{
+main(
+    void
+) {
     size_t nb_tests;
     u32 nb_tests_passed;
     u32 i;

@@ -14,10 +14,11 @@
 
 IWRAM_CODE
 int
-main(void)
-{
-    uint16_t nb_test_pass;
-    uint16_t nb_test_fail;
+main(
+    void
+) {
+    u16 nb_test_pass;
+    u16 nb_test_fail;
 
     irqInit();
     consoleDemoInit();
@@ -28,7 +29,7 @@ main(void)
     irqEnable(IRQ_VBLANK);
     VBlankIntrWait();
 
-    uint32_t values[12][2] = {
+    u32 values[12][2] = {
         { 0xe3a02004, *(vu32 *)0x0 },
         { 0x00002004, *(vu16 *)0x0 },
         { 0x00000004, *(vu8 *)0x0 },
@@ -48,7 +49,7 @@ main(void)
     for (int i = 0; i < 12; ++i) {
         bool success;
 
-        success = values[i][0] == values[i][1];
+        success = (values[i][0] == values[i][1]);
 
         if (success) {
             ++nb_test_pass;

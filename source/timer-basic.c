@@ -13,8 +13,8 @@
 #include <gba_timers.h>
 #include <stdio.h>
 
-uint16_t nb_test_pass = 0;
-uint16_t nb_test_fail = 0;
+u16 nb_test_pass = 0;
+u16 nb_test_fail = 0;
 
 /*
 ** Ideas to explore:

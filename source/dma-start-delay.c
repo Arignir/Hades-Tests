@@ -17,8 +17,8 @@
 #define REG_WAITCNT         *(vu32*)(REG_BASE + 0x204)
 #define WAITCNT_PREFETCH    (1 << 14)
 
-uint16_t nb_test_pass = 0;
-uint16_t nb_test_fail = 0;
+u16 nb_test_pass = 0;
+u16 nb_test_fail = 0;
 
 enum test_kind {
     TEST_KIND_IWRAM,
@@ -31,11 +31,11 @@ enum test_kind {
 
 #define TEST_INNER_FN(_kind, _kind_str, _idx, _test_results, _code) \
     { \
-        u16 samples[sizeof(_test_results[0]) / sizeof(uint16_t)]; \
+        u16 samples[sizeof(_test_results[0]) / sizeof(u16)]; \
         u32 samples_count; \
         u32 i; \
         \
-        samples_count = sizeof(_test_results[0]) / sizeof(uint16_t); \
+        samples_count = sizeof(_test_results[0]) / sizeof(u16); \
         \
         if ((_kind) == TEST_KIND_ROM_WITH_PREFETCH) { \
             REG_WAITCNT |= WAITCNT_PREFETCH; \
