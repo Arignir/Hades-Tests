@@ -24,7 +24,7 @@ main(
     consoleDemoInit();
 
     printf("BIOS Tests\n");
-    printf("  BIOS Open Bus Unaligned Access\n\n");
+    printf("  Open Bus Unaligned Access\n\n");
 
     irqEnable(IRQ_VBLANK);
     VBlankIntrWait();
