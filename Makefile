@@ -8,73 +8,68 @@
 ################################################################################
 
 # Verbosity
-Q	:= @
+Q		:= @
 
 # Source & Target directory
-SOURCE	:= $(realpath $(shell pwd))/source
-BUILD	:= $(realpath $(shell pwd))/build
-ROMS	:= $(realpath $(shell pwd))/roms/
+SOURCE_DIR	:= $(realpath $(shell pwd))/source/
+BUILD_DIR	:= $(realpath $(shell pwd))/build/
+ROMS_DIR	:= $(realpath $(shell pwd))/roms/
 
-TARGETS := \
-	$(BUILD)/dma/dma-start-delay.gba \
-	$(BUILD)/dma/dma-latch.gba \
-	$(BUILD)/openbus/openbus-bios.gba \
-	$(BUILD)/timer/timer-basic.gba \
+# Targets
+TARGETS 	:= \
+		$(ROMS_DIR)/dma-start-delay.gba \
+		$(ROMS_DIR)/dma-latch.gba \
+		$(ROMS_DIR)/bios-openbus.gba \
+		$(ROMS_DIR)/timer-basic.gba \
 
-include $(DEVKITARM)/gba_rules
+PATH		:= $(DEVKITARM)/bin:$(PATH)
+LIBGBA		:= $(DEVKITPRO)/libgba
+CC		:= arm-none-eabi-gcc
+LD		:= arm-none-eabi-gcc
+OBJCOPY		:= arm-none-eabi-objcopy
 
-PATH	:= $(DEVKITARM)/bin:$(PATH)
-CC	:= arm-none-eabi-gcc
-LD	:= arm-none-eabi-gcc
-OBJCOPY	:= arm-none-eabi-objcopy
+# Compiler flags
+CFLAGS		:= \
+		-Wall \
+		-Wextra \
+		-std=gnu17 \
+		-fms-extensions \
+		-fomit-frame-pointer\
+		-mcpu=arm7tdmi \
+		-mtune=arm7tdmi \
+		-I$(LIBGBA)/include \
+		-Iinclude
 
-CFLAGS	:= \
-	-Wall \
-	-Wextra \
-	-std=gnu17 \
-	-fms-extensions \
-	-fomit-frame-pointer\
-	-mcpu=arm7tdmi \
-	-mtune=arm7tdmi \
-	-I$(LIBGBA)/include \
-	-Iinclude
-
-LDFLAGS	:= \
-	-specs=gba.specs \
-	-lmm -lgba \
-	-L$(LIBGBA)/lib
+# Linker flags
+LDFLAGS		:= \
+		-specs=gba.specs \
+		-lmm -lgba \
+		-L$(LIBGBA)/lib
 
 
 all: $(TARGETS)
-	$(Q)mkdir -p $(ROMS)
-	$(Q)cp $(TARGETS) $(ROMS)
 
-$(BUILD)/dma/dma-start-delay.gba: $(BUILD)/dma/start-delay.o
-$(BUILD)/dma/dma-latch.gba: $(BUILD)/dma/latch.o
-$(BUILD)/openbus/openbus-bios.gba: $(BUILD)/openbus/bios.o
-$(BUILD)/timer/timer-basic.gba: $(BUILD)/timer/basic.o
-
-$(TARGETS):
+$(ROMS_DIR)/%.gba: $(BUILD_DIR)/%.o
 	$(Q)echo "  LD $(shell basename $@)"
+	$(Q)mkdir -p $(dir $@)
 	$(Q)$(LD) $^ $(LDFLAGS) -o $@
 	$(Q)$(OBJCOPY) -O binary $@
-	$(Q)gbafix $@ > /dev/null
+	$(Q)gbafix -t"HADES TESTS" -cHDS $@ > /dev/null
 
 -include $(DEP)
-$(BUILD)/%.o: $(SOURCE)/%.c
-	$(Q)echo "  CC ${subst $(SOURCE)/,,$<}"
+$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.c
+	$(Q)echo "  CC $(shell basename $<)"
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) -MD -c $< -o $@
 
-%.o: %.S
-	$(Q)echo "  AS $(shell basename $<)"
-	$(CC) $(CFLAGS) -c $< -o $@
-
 clean:
-	$(Q)echo "  RM $(shell basename $(BUILD))"
-	$(Q)rm -rf $(BUILD)
-	$(Q)echo "  RM $(shell basename $(ROMS))"
-	$(Q)rm -rf $(ROMS)
+	$(Q)echo "  RM $(shell basename $(BUILD_DIR))"
+	$(Q)rm -rf $(BUILD_DIR)
+	$(Q)echo "  RM $(shell basename $(ROMS_DIR))"
+	$(Q)rm -rf $(ROMS_DIR)
 
 re: clean
 	$(Q)$(MAKE) --no-print-directory all
+
+.PHONY: all clean re
+.PRECIOUS: $(BUILD_DIR)/%.o

@@ -234,14 +234,6 @@ dma_latch_test_4(
     return success;
 }
 
-static
-bool (* const tests[])(void) = {
-    dma_latch_test_1,
-    dma_latch_test_2,
-    dma_latch_test_3,
-    dma_latch_test_4,
-};
-
 IWRAM_CODE
 int
 main(void)
@@ -255,6 +247,13 @@ main(void)
 
     printf("DMA Tests\n");
     printf("  Latch & Open Bus\n\n");
+
+    bool (* const tests[])(void) = {
+        dma_latch_test_1,
+        dma_latch_test_2,
+        dma_latch_test_3,
+        dma_latch_test_4,
+    };
 
     nb_tests = sizeof(tests) / sizeof(tests[0]);
 
